@@ -1,0 +1,29 @@
+# Clean up the development DBT schema created by test.yml after PRs close
+name: merge
+on:
+  pull_request:
+    types: [closed]
+
+env:
+  DBT_PROFILES_DIR: "."
+  POETRY_VERSION: "1.2.2"
+
+jobs:
+  merge:
+    runs-on: ubuntu-20.04
+    environment: ci
+    env:
+      DBT_SCHEMA: dbt_pr_${{ github.event.number }}
+      DBT_USER: ${{ vars.DBT_USER }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: |
+          pip install poetry==${{ env.POETRY_VERSION }}
+      - run: |
+          poetry config virtualenvs.create false && poetry install --no-interaction --no-dev --no-ansi
+      - run: dbt deps --target=ci
+      - run: dbt run-operation drop_target_schema --target=ci

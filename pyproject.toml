@@ -1,0 +1,68 @@
+[tool.poetry]
+name = "fe-demos"
+version = "0.1.0"
+authors = ["Seth Wiesman <seth@materialize.com>"]
+description = "Field Engineering Demos"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "<3.12,>=3.10.0"
+dbt-materialize = "1.8.2"
+dbt-common = "1.5.0"
+
+[tool.poetry.dev-dependencies]
+sqlfluff = ">1.4.0"
+sqlfluff-templater-dbt = ">=2.3.4"
+ruff = "^0.1.2"
+black = "^23.10.1"
+
+[tool.ruff]
+target-version = "py310"
+select = [
+  "E",   # flake8 errors
+  "F",   # flake8
+  "B",   # flake8-bugbear
+  "I",   # isort
+  "N",   # naming
+  "S",   # security
+  "ISC", # implicit string concatenation
+  "SIM", # flake8-simplify
+  "TID", # flake8-tidy-imports
+]
+ignore = [
+  "E501", # black takes care of line length
+  "S101", # asserts aren't actually bad
+  "S603", # this check is not useful
+  "S606", # this check is not useful
+  "S607", # not clear what the actual fix here would be
+]
+
+[tool.sqlfluff.core]
+templater = "dbt"
+dialect = "materialize"
+rules = ["L001", "L002", "L003", "capitalisation"]
+
+[tool.sqlfluff.templater.dbt]
+profiles_dir = "./"
+
+[tool.sqlfluff.layout.type.comma]
+line_position = "trailing"
+
+[tool.sqlfluff.indentation]
+indent_unit = "space"
+tab_space_size = 4
+
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitalisation_policy = "upper"
+[tool.sqlfluff.rules.capitalisation.identifiers]
+capitalisation_policy = "lower"
+[tool.sqlfluff.rules.capitalisation.functions]
+extended_capitalisation_policy = "lower"
+[tool.sqlfluff.rules.capitalisation.literals]
+capitalisation_policy = "lower"
+[tool.sqlfluff.rules.capitalisation.types]
+extended_capitalisation_policy = "upper"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

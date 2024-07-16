@@ -1,0 +1,26 @@
+config:
+  send_anonymous_usage_stats: False
+
+materialize:
+  target: dev
+  outputs:
+    dev:
+      type: materialize
+      port: 6875
+      database: materialize
+      cluster: quickstart
+      host: "FILL ME IN"
+      schema: "dbt_{{ env_var('MZ_USER', 'FILL ME IN') | replace('.', '_') | replace('@', '_') }}"
+      user: "{{ env_var('MZ_USER', 'FILL ME IN') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      sslmode: require
+    ci:
+      type: materialize
+      port: 6875
+      database: materialize
+      cluster: quickstart
+      host: "FILL ME IN"
+      schema: "{{ env_var('DBT_SCHEMA') }}"
+      user: "{{ env_var('DBT_USER') }}"
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      sslmode: require

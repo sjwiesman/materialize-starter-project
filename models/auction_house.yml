@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: auction_house
+    database: "{{ target.database }}"
+    schema: "{{ target.schema }}"
+    description: Load generator source to simulate an auction house where different users are bidding on an ongoing series of auctions
+    tables:
+      - name: auctions
+        description: Past and ongoing auctions
+      - name: bids
+        description: Bids placed in each auction
+      - name: organizations
+      - name: users
+      - name: accounts

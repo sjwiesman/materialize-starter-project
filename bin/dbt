@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Runs dbt from the local virtualenv, setting up the virtualenv if necessary.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+if [[ ! -f .venv/bin/activate ]]; then
+    rm -rf .venv
+fi
+
+if [[ ! -x .venv/bin/dbt ]]; then
+    poetry config virtualenvs.in-project true && poetry install
+fi
+
+DBT_PROFILES_DIR=$(pwd)
+export DBT_PROFILES_DIR
+
+exec .venv/bin/dbt "$@"

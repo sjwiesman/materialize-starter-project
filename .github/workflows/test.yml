@@ -1,0 +1,50 @@
+# Run lints and tests on each PR, ensuring `dbt run` succeeds in a development schema along the way
+name: test
+on: pull_request
+
+env:
+  DBT_PROFILES_DIR: "."
+  POETRY_VERSION: "1.2.2"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    environment: ci
+    env:
+      DBT_SCHEMA: dbt_pr_${{ github.event.number }}
+      DBT_USER: ${{ vars.DBT_USER }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: |
+          pip install poetry==${{ env.POETRY_VERSION }}
+      - run: |
+          poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+      - run: dbt deps --target=ci
+      - run: sed -i '/\[tool.sqlfluff.templater.dbt\]/a target = "ci"' pyproject.toml
+      - run: bin/lint
+
+  test:
+    runs-on: ubuntu-20.04
+    environment: ci
+    env:
+      DBT_SCHEMA: dbt_pr_${{ github.event.number }}
+      DBT_USER: ${{ vars.DBT_USER }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: |
+          pip install poetry==${{ env.POETRY_VERSION }}
+      - run: |
+          poetry config virtualenvs.create false && poetry install --no-interaction --no-dev --no-ansi
+      - run: dbt deps --target=ci
+      - run: dbt seed --full-refresh --target=ci
+      - run: dbt debug --target=ci
+      - run: dbt run --target=ci
+      - run: dbt test --target=ci

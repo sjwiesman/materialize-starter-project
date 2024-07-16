@@ -1,0 +1,42 @@
+# Deploy to production on merges to main
+# 'production' means running the models against the public schema
+name: deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  DBT_PROFILES_DIR: "."
+  POETRY_VERSION: "1.2.2"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    environment: ci
+    env:
+      DBT_SCHEMA: public
+      DBT_USER: ${{ vars.DBT_USER }}
+      DBT_PASSWORD: ${{ secrets.DBT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: |
+          pip install poetry==${{ env.POETRY_VERSION }}
+      - run: |
+          poetry config virtualenvs.create false && poetry install --no-interaction --no-dev --no-ansi
+      - run: dbt deps --target=ci
+      - run: dbt run --target=ci
+      - run: dbt test --target=ci
+      - name: Final Slack notification
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          # v2.1.0 on 2021-07-22
+        uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a
+        with:
+          args: |
+            :alert: Deploy failed!
+            <https://github.com/MaterializeInc/operational-analytics/actions/runs/${{ github.run_id }}|View details.>
+        if: failure()

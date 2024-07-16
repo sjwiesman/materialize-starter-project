@@ -1,0 +1,6 @@
+name: mz_odw
+version: 0.0.0
+config-version: 2
+require-dbt-version: ">=1.8.2"
+
+profile: materialize
